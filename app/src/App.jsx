@@ -1,5 +1,5 @@
-import './App.css'
-import { useState } from 'react'
+import './index.css'
+import { useEffect, useState } from 'react'
 
 
 const width = 8
@@ -26,12 +26,25 @@ const App = () => {
         setCurrentColorArrangement(randomColorArrangement)
     }
     
-    createBoard()
+    useEffect(() => {
+        createBoard()
+    }, [])
 
     console.log(currentColorArrangement)
 
   return (
-    <div></div>
+    <div className="app">
+        <div className="game">
+            {currentColorArrangement.map((candyColor, index) => (
+                <img
+                    key={index}
+                    style={{backgroundColor: candyColor}}
+                />
+                ))}
+
+        </div>
+
+    </div>
   )  
 }    
   
