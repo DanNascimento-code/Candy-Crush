@@ -49,7 +49,8 @@ const App = () => {
             checkForColumnOfThree()
         }, 100)
         return () => clearInterval(timer)
-    })
+
+    }, [checkForColumnOfThree])
 
 
     console.log(currentColorArrangement)
