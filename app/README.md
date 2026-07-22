@@ -1,16 +1,35 @@
-# React + Vite
+# Sweet Mayhem
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Protótipo de um jogo match-3 dark construído com React e Vite.
 
-Currently, two official plugins are available:
+## Comandos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm run dev
+npm test
+npm run lint
+npm run build
+```
 
-## React Compiler
+## Arquitetura atual
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `src/game/board.js`: regras puras do tabuleiro. Não depende de React nem de imagens.
+- `src/game/board.test.js`: exemplos executáveis das regras e dos casos de borda.
+- `src/App.jsx`: estado da interface e tradução dos gestos do usuário em jogadas.
+- `src/index.css`: apresentação visual e responsividade.
 
-## Expanding the ESLint configuration
+O tabuleiro guarda identificadores como `purple` e `blue`, em vez de URLs de
+imagens. Essa separação permite trocar o tema visual sem alterar a lógica.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Fluxo de uma jogada
+
+1. A interface informa os dois índices escolhidos.
+2. `trySwap` verifica se eles são realmente vizinhos.
+3. Uma cópia do tabuleiro recebe a troca.
+4. A engine aceita a jogada somente se uma das peças formar um match.
+5. Os matches são removidos, as peças caem e novos doces são criados.
+6. O processo se repete até não haver novas cascatas.
+7. A engine devolve o novo tabuleiro, a pontuação e a quantidade de cascatas.
+
+Todas as transformações retornam novos arrays. O estado recebido nunca é
+alterado diretamente, seguindo o princípio de imutabilidade usado pelo React.
