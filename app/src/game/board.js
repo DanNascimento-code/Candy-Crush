@@ -202,6 +202,43 @@ export function clearMatches(board, matchedIndices) {
   return nextBoard
 }
 
+function moveTilesDown(board, width) {
+  const height = board.length / width
+  const fallenBoard = Array(board.length).fill(EMPTY_TILE)
+
+  for (let column = 0; column < width; column += 1) {
+    let destinationRow = height - 1
+
+    for (let row = height - 1; row >= 0; row -= 1) {
+      const tile = board[row * width + column]
+
+      if (tile !== EMPTY_TILE) {
+        fallenBoard[destinationRow * width + column] = tile
+        destinationRow -= 1
+      }
+    }
+  }
+
+  return fallenBoard
+}
+
+function fillEmptyTiles(board, width, candyTypes, random) {
+  const height = board.length / width
+  const filledBoard = [...board]
+
+  for (let column = 0; column < width; column += 1) {
+    for (let row = height - 1; row >= 0; row -= 1) {
+      const index = row * width + column
+
+      if (filledBoard[index] === EMPTY_TILE) {
+        filledBoard[index] = randomItem(candyTypes, random)
+      }
+    }
+  }
+
+  return filledBoard
+}
+
 export function collapseBoard({
   board,
   width,
@@ -210,30 +247,15 @@ export function collapseBoard({
 }) {
   validateBoardDimensions(board, width)
   const availableTypes = validateCandyTypes(candyTypes)
-  const height = board.length / width
-  const nextBoard = Array(board.length).fill(EMPTY_TILE)
 
-  for (let column = 0; column < width; column += 1) {
-    let destinationRow = height - 1
+  const fallenBoard = moveTilesDown(board, width)
 
-    for (let row = height - 1; row >= 0; row -= 1) {
-      const tile = board[row * width + column]
-      if (tile !== EMPTY_TILE) {
-        nextBoard[destinationRow * width + column] = tile
-        destinationRow -= 1
-      }
-    }
-
-    while (destinationRow >= 0) {
-      nextBoard[destinationRow * width + column] = randomItem(
-        availableTypes,
-        random,
-      )
-      destinationRow -= 1
-    }
-  }
-
-  return nextBoard
+  return fillEmptyTiles(
+    fallenBoard,
+    width,
+    availableTypes,
+    random,
+  )
 }
 
 export function resolveBoard({
@@ -252,6 +274,7 @@ export function resolveBoard({
   let cascades = 0
   let clearedTiles = 0
   let score = 0
+  const steps = []
 
   while (cascades < maxCascades) {
     const matchedIndices = findMatchedIndices(nextBoard, width)
@@ -263,14 +286,41 @@ export function resolveBoard({
         clearedTiles,
         score,
         stabilized: true,
+        steps,
       }
     }
 
     cascades += 1
+
+    steps.push({
+      type: 'match-found',
+      cascade: cascades,
+      board: [...nextBoard],
+      matchedIndices: [...matchedIndices],
+    })
+
     clearedTiles += matchedIndices.length
     score += matchedIndices.length * pointsPerTile * cascades
+
+    const clearedBoard = clearMatches(nextBoard, matchedIndices)
+
+    steps.push({
+      type: 'tiles-cleared',
+      cascade: cascades,
+      board: [...clearedBoard],
+      clearedIndices: [...matchedIndices],
+    })
+
+    const fallenBoard = moveTilesDown(clearedBoard, width)
+
+    steps.push({
+      type: 'tiles-fell',
+      cascade: cascades,
+      board: [...fallenBoard],
+    })
+
     nextBoard = collapseBoard({
-      board: clearMatches(nextBoard, matchedIndices),
+      board: fallenBoard,
       width,
       candyTypes,
       random,
@@ -283,6 +333,7 @@ export function resolveBoard({
     clearedTiles,
     score,
     stabilized: false,
+    steps,
   }
 }
 

@@ -110,7 +110,7 @@ function App() {
         <header className="game-header">
           <div>
             <p className="eyebrow">Dark Candy — protótipo</p>
-            <h1>Sweet Mayhem</h1>
+            <h1>Kuromi</h1>
           </div>
 
           <div className="score-card" aria-label={`${score} pontos`}>

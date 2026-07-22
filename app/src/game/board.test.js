@@ -106,6 +106,17 @@ test('trySwap rejects a swap between non-adjacent positions', () => {
     'd', 'e', 'f',
     'g', 'h', 'i',
   ]
+  const result = trySwap({
+    board: board,
+    firstIndex: 0,
+    secondIndex: 4,
+    width: 3,
+    candyTypes,
+  })
+
+  assert.equal(result.accepted, false)
+  assert.equal(result.reason, 'not-adjacent')
+  assert.deepEqual(result.board, board)
 })
 
 test('trySwap rejects a neighboring swap that creates no match', () => {
@@ -152,6 +163,58 @@ test('trySwap accepts a match and resolves the resulting board', () => {
     'e', 'f', 'b',
   ])
 })
+
+
+test('resolveBoard records match-found, tiles-cleared, and tiles-fell steps in order', () => {
+  const board = [
+    'b', 'c', 'd',
+    'c', 'd', 'b',
+    'a', 'a', 'a',
+  ]
+
+  const result = resolveBoard({
+    board,
+    width: 3,
+    candyTypes,
+    random: sequenceRandom([0, 0.2, 0.4]),
+  })
+
+  assert.equal(result.stabilized, true)
+  assert.equal(result.steps.length, 3)
+
+  assert.deepEqual(result.steps[0], {
+    type: 'match-found',
+    cascade: 1,
+    board,
+    matchedIndices: [6, 7, 8],
+  })
+
+  assert.deepEqual(result.steps[1], {
+    type: 'tiles-cleared',
+    cascade: 1,
+    board: [
+      'b', 'c', 'd',
+      'c', 'd', 'b',
+      EMPTY_TILE, EMPTY_TILE, EMPTY_TILE,
+    ],
+    clearedIndices: [6, 7, 8],
+  })
+
+  assert.deepEqual(result.steps[2], {
+    type: 'tiles-fell',
+    cascade: 1,
+    board: [
+      EMPTY_TILE, EMPTY_TILE, EMPTY_TILE,
+      'b', 'c', 'd',
+      'c', 'd', 'b',
+    ],
+  })
+
+  assert.notEqual(result.steps[0].board, board)
+  assert.notEqual(result.steps[1].board, result.steps[0].board)
+  assert.notEqual(result.steps[2].board, result.steps[1].board)
+})
+
 
 test('resolveBoard stops safely when random refills never stabilize', () => {
   const result = resolveBoard({
