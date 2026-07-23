@@ -277,7 +277,13 @@ export function resolveBoard({
   const steps = []
 
   while (cascades < maxCascades) {
-    const matchedIndices = findMatchedIndices(nextBoard, width)
+    const matchGroups = findMatchGroups(nextBoard, width)
+
+    const matchedIndices = [
+      ...new Set(
+        matchGroups.flatMap((group) => group.indices),
+      ),
+    ].sort((first, second) => first - second)
 
     if (matchedIndices.length === 0) {
       return {
@@ -295,8 +301,13 @@ export function resolveBoard({
     steps.push({
       type: 'match-found',
       cascade: cascades,
+      matchedIndices,
+      matchGroups: matchGroups.map((group) => ({
+        type: group.type,
+        orientation: group.orientation,
+        indices: [...group.indices],
+      })),
       board: [...nextBoard],
-      matchedIndices: [...matchedIndices],
     })
 
     clearedTiles += matchedIndices.length

@@ -165,7 +165,7 @@ test('trySwap accepts a match and resolves the resulting board', () => {
 })
 
 
-test('resolveBoard records match-found, tiles-cleared, tiles-fell, and tiles-refiled in order', () => {
+test('resolveBoard records match-found, tiles-cleared, tiles-fell, and tiles-refiled steps in order', () => {
   const board = [
     'b', 'c', 'd',
     'c', 'd', 'b',
@@ -185,8 +185,19 @@ test('resolveBoard records match-found, tiles-cleared, tiles-fell, and tiles-ref
   assert.deepEqual(result.steps[0], {
     type: 'match-found',
     cascade: 1,
-    board,
     matchedIndices: [6, 7, 8],
+    matchGroups: [
+      {
+        type: 'a',
+        orientation: 'row',
+        indices: [6, 7, 8],
+      },
+    ],
+    board: [
+      'b', 'c', 'd',
+      'c', 'd', 'b',
+      'a', 'a', 'a',
+    ],
   })
 
   assert.deepEqual(result.steps[1], {

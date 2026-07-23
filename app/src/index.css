@@ -102,7 +102,9 @@ h1 {
   grid-template-columns: repeat(var(--board-width), minmax(0, 1fr));
   width: 100%;
   aspect-ratio: 1;
-  gap: clamp(2px, 0.7vw, 6px);
+  --board-gap: clamp(2px, 0.7vw, 6px);
+
+  gap: var(--board-gap);
   padding: clamp(7px, 1.5vw, 13px);
   border: 1px solid rgb(255 255 255 / 14%);
   border-radius: clamp(18px, 4vw, 28px);
@@ -128,13 +130,13 @@ h1 {
   transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.tile:hover {
+.tile:not(:disabled):hover {
   z-index: 1;
   transform: translateY(-2px) scale(1.045);
   border-color: rgb(244 185 255 / 35%);
 }
 
-.tile:active {
+.tile:not(:disabled):active {
   cursor: grabbing;
   transform: scale(0.95);
 }
@@ -156,6 +158,240 @@ h1 {
   filter: drop-shadow(0 7px 5px rgb(0 0 0 / 38%));
   user-select: none;
 }
+
+.tile.swap-front {
+  z-index: 4;
+}
+
+.game[data-step="tiles-swapping"] .tile.swapping img {
+  animation: tile-swap 280ms cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+@keyframes tile-swap {
+  from {
+    translate: 0 0;
+    scale: 1;
+  }
+
+  50% {
+    scale: 1.08;
+  }
+
+  to {
+    translate: var(--swap-x) var(--swap-y);
+    scale: 1;
+  }
+}
+
+
+.game[data-step="tiles-swap-rejected"] .tile.swapping img {
+  animation: tile-swap-rejected 460ms
+    cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+@keyframes tile-swap-rejected {
+  0% {
+    translate: 0 0;
+    scale: 1;
+  }
+
+  40% {
+    translate: var(--swap-x) var(--swap-y);
+    scale: 1.06;
+  }
+
+  55% {
+    translate: var(--swap-x) var(--swap-y);
+    scale: 1.03;
+  }
+
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+
+.tile:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.tile.empty {
+  border-color: transparent;
+  background: rgb(255 255 255 / 2%);
+}
+
+/* Combinação encontrada */
+
+.game[data-step="match-found"] .tile.match-3 img {
+  animation: match-three 450ms ease-in-out both;
+}
+
+.game[data-step="match-found"] .tile.match-4 img {
+  animation: match-four 450ms ease-in-out both;
+}
+
+.game[data-step="match-found"] .tile.match-5-plus img {
+  animation: match-five-plus 450ms ease-in-out both;
+}
+
+/* Doces removidos */
+
+.game[data-step="tiles-cleared"] .tile.animating::after {
+  content: "";
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #fff 0 10%,
+    #f4b9ff 12% 26%,
+    rgb(205 64 255 / 65%) 28% 48%,
+    transparent 52%
+  );
+  animation: tile-clear 250ms ease-out both;
+}
+
+/* Queda */
+
+.game[data-step="tiles-fell"] .tile.animating img {
+  animation: tile-fall 350ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+/* Entrada de novos doces */
+
+.game[data-step="tiles-refilled"] .tile.animating img {
+  animation: tile-refill 350ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes match-pulse {
+  0%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+
+  40% {
+    transform: scale(1.2) rotate(-4deg);
+  }
+
+  70% {
+    transform: scale(1.1) rotate(3deg);
+  }
+}
+
+@keyframes tile-clear {
+  from {
+    opacity: 1;
+    transform: scale(0.35);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.65) rotate(20deg);
+  }
+}
+
+@keyframes tile-fall {
+  from {
+    opacity: 0.25;
+    transform: translateY(-65%) scale(0.92);
+  }
+
+  75% {
+    opacity: 1;
+    transform: translateY(6%) scale(1.03);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tile-refill {
+  from {
+    opacity: 0;
+    transform: translateY(-110%) scale(0.8);
+  }
+
+  75% {
+    opacity: 1;
+    transform: translateY(6%) scale(1.04);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+@keyframes match-three {
+  0%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+
+  40% {
+    transform: scale(1.18) rotate(-4deg);
+  }
+
+  70% {
+    transform: scale(1.08) rotate(3deg);
+  }
+}
+
+@keyframes match-four {
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: scale(1) rotate(0);
+  }
+
+  45% {
+    filter:
+      brightness(1.35)
+      drop-shadow(0 0 8px rgb(255 255 255 / 85%));
+    transform: scale(1.28) rotate(-7deg);
+  }
+
+  75% {
+    filter:
+      brightness(1.15)
+      drop-shadow(0 0 5px rgb(244 185 255 / 70%));
+    transform: scale(1.12) rotate(5deg);
+  }
+}
+
+@keyframes match-five-plus {
+  0%,
+  100% {
+    filter: brightness(1) saturate(1);
+    transform: scale(1) rotate(0);
+  }
+
+  30% {
+    filter:
+      brightness(1.5)
+      saturate(1.35)
+      drop-shadow(0 0 10px rgb(255 255 255 / 95%));
+    transform: scale(1.35) rotate(-9deg);
+  }
+
+  60% {
+    filter:
+      brightness(1.25)
+      saturate(1.25)
+      drop-shadow(0 0 14px rgb(205 64 255 / 90%));
+    transform: scale(1.16) rotate(7deg);
+  }
+
+  82% {
+    transform: scale(1.25) rotate(-3deg);
+  }
+}
+
 
 .game-footer {
   margin-top: 20px;
@@ -215,5 +451,7 @@ h1 {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
