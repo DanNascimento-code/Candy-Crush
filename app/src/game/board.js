@@ -325,6 +325,13 @@ export function resolveBoard({
       candyTypes,
       random,
     })
+  
+
+    steps.push({
+      type: 'tiles-refilled',
+      cascade: cascades,
+      board: [...nextBoard],
+    })
   }
 
   return {

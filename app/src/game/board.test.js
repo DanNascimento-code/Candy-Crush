@@ -165,7 +165,7 @@ test('trySwap accepts a match and resolves the resulting board', () => {
 })
 
 
-test('resolveBoard records match-found, tiles-cleared, and tiles-fell steps in order', () => {
+test('resolveBoard records match-found, tiles-cleared, tiles-fell, and tiles-refiled in order', () => {
   const board = [
     'b', 'c', 'd',
     'c', 'd', 'b',
@@ -180,7 +180,7 @@ test('resolveBoard records match-found, tiles-cleared, and tiles-fell steps in o
   })
 
   assert.equal(result.stabilized, true)
-  assert.equal(result.steps.length, 3)
+  assert.equal(result.steps.length, 4)
 
   assert.deepEqual(result.steps[0], {
     type: 'match-found',
@@ -210,11 +210,60 @@ test('resolveBoard records match-found, tiles-cleared, and tiles-fell steps in o
     ],
   })
 
+  assert.deepEqual(result.steps[3], {
+    type: 'tiles-refilled',
+    cascade: 1,
+    board: [
+      'a', 'b', 'c',
+      'b', 'c', 'd',
+      'c', 'd', 'b',
+    ],
+  }
+  )
+
   assert.notEqual(result.steps[0].board, board)
   assert.notEqual(result.steps[1].board, result.steps[0].board)
   assert.notEqual(result.steps[2].board, result.steps[1].board)
+  assert.notEqual(result.steps[3].board, result.steps[2].board)
 })
 
+
+test('resolveBoard records the correct step sequence across multiple cascades', () => {
+  const board = [
+    'b', 'c', 'd',
+    'c', 'd', 'b',
+    'a', 'a', 'a',
+  ]
+
+  const result = resolveBoard({
+    board,
+    width: 3,
+    candyTypes,
+    random: sequenceRandom([
+      0, 0, 0,
+      0, 0.2, 0.4,
+    ]),
+  })
+
+  assert.equal(result.stabilized, true)
+  assert.equal(result.cascades, 2)
+  assert.equal(result.steps.length, 8)
+
+  assert.deepEqual(
+    result.steps.map(({ type, cascade }) => ({ type, cascade })),
+    [
+      { type: 'match-found', cascade: 1 },
+      { type: 'tiles-cleared', cascade: 1 },
+      { type: 'tiles-fell', cascade: 1 },
+      { type: 'tiles-refilled', cascade: 1 },
+
+      { type: 'match-found', cascade: 2 },
+      { type: 'tiles-cleared', cascade: 2 },
+      { type: 'tiles-fell', cascade: 2 },
+      { type: 'tiles-refilled', cascade: 2 },
+    ],
+  )
+})
 
 test('resolveBoard stops safely when random refills never stabilize', () => {
   const result = resolveBoard({
