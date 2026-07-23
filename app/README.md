@@ -52,3 +52,14 @@ Essa separação permite trocar imagens e efeitos sem alterar as regras do jogo.
 
 Todas as transformações retornam novos arrays. O estado recebido nunca é
 alterado diretamente, seguindo o princípio de imutabilidade usado pelo React.
+
+## Música por fase
+
+- `src/audio/musicCatalog.js`: catálogo testável que associa cada fase a uma faixa.
+- `src/components/BackgroundMusic.jsx`: reprodução, autoplay com fallback e controle de áudio.
+- `THIRD_PARTY_AUDIO.md`: autores, fontes e licenças das músicas incluídas.
+
+Na URL raiz, o protótipo representa temporariamente a fase 1. O navegador tenta
+iniciar a faixa gótica imediatamente; se a política de autoplay bloquear som, a
+primeira interação do jogador libera a reprodução. A preferência de áudio
+silenciado é mantida em `localStorage`.

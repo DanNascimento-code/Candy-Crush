@@ -616,10 +616,105 @@ h1 {
 }
 
 .message {
+  flex: 1 1 auto;
   min-height: 1.5em;
   margin: 0;
   color: #d9c8df;
   font-size: 0.9rem;
+}
+
+.footer-controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.music-control audio {
+  display: none;
+}
+
+.music-toggle {
+  display: flex;
+  max-width: 220px;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 12px 7px 8px;
+  border: 1px solid rgb(200 127 255 / 25%);
+  border-radius: 999px;
+  color: #eadff0;
+  cursor: pointer;
+  background: rgb(9 4 15 / 52%);
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.music-toggle:hover {
+  border-color: rgb(232 167 255 / 48%);
+  background: rgb(91 30 111 / 34%);
+  transform: translateY(-1px);
+}
+
+.music-toggle:focus-visible {
+  outline: 2px solid #f4b9ff;
+  outline-offset: 2px;
+}
+
+.music-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 30px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 50%;
+  color: #f3b5ff;
+  font-size: 1rem;
+  font-weight: 900;
+  background: radial-gradient(circle at 35% 30%, #5f2b70, #1a0922 72%);
+  box-shadow: 0 0 9px rgb(207 86 255 / 24%);
+}
+
+.music-control[data-playing] .music-icon {
+  animation: music-pulse 1.8s ease-in-out infinite;
+}
+
+.music-copy {
+  display: grid;
+  min-width: 0;
+  text-align: left;
+}
+
+.music-copy small,
+.music-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.music-copy small {
+  color: #bda9c7;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.music-copy strong {
+  max-width: 124px;
+  font-size: 0.74rem;
+}
+
+@keyframes music-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 7px rgb(207 86 255 / 26%);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 14px rgb(239 105 255 / 58%);
+    transform: scale(1.06);
+  }
 }
 
 .restart-button {
@@ -652,6 +747,19 @@ h1 {
   .game-header,
   .game-footer {
     align-items: flex-start;
+  }
+
+  .game-footer {
+    flex-direction: column;
+  }
+
+  .footer-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .music-toggle {
+    max-width: min(68vw, 220px);
   }
 
   .score-card {

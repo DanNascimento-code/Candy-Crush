@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 
 import AnimatedBackground from './components/AnimatedBackground.jsx'
+import BackgroundMusic from './components/BackgroundMusic.jsx'
 import blueCandy from './images/dark-candies/blue-haunted-moon.png'
 import colorBombCandy from './images/dark-candies/color-bomb.png'
 import greenCandy from './images/dark-candies/green-poison-apple.png'
@@ -20,6 +21,7 @@ import { SPECIAL_TYPES } from './game/candy.js'
  
 
 const BOARD_WIDTH = 8
+const CURRENT_PHASE = 1
 const CANDY_TYPES = ['blue', 'green', 'orange', 'purple', 'red', 'yellow']
 const CANDY_IMAGES = {
   blue: blueCandy,
@@ -437,14 +439,19 @@ function App() {
           <p className="message" aria-live="polite">
             {message}
           </p>
-          <button 
-            className="restart-button"
-            type="button"
-            disabled={isResolving}
-            onClick={restartGame}
-          >
-            Reiniciar
-          </button>
+
+          <div className="footer-controls">
+            <BackgroundMusic phase={CURRENT_PHASE} />
+
+            <button 
+              className="restart-button"
+              type="button"
+              disabled={isResolving}
+              onClick={restartGame}
+            >
+              Reiniciar
+            </button>
+          </div>
         </footer>
       </section>
     </main>
