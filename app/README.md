@@ -15,11 +15,30 @@ npm run build
 
 - `src/game/board.js`: regras puras do tabuleiro. Não depende de React nem de imagens.
 - `src/game/board.test.js`: exemplos executáveis das regras e dos casos de borda.
+- `src/game/candy.js`: modelo e invariantes de doces comuns e especiais.
+- `src/game/candy.test.js`: testes unitários do modelo `Candy`.
 - `src/App.jsx`: estado da interface e tradução dos gestos do usuário em jogadas.
 - `src/index.css`: apresentação visual e responsividade.
 
-O tabuleiro guarda identificadores como `purple` e `blue`, em vez de URLs de
-imagens. Essa separação permite trocar o tema visual sem alterar a lógica.
+Cada posição ocupada guarda um objeto imutável com o mesmo formato:
+
+```js
+{
+  candyType: 'purple',
+  specialType: null,
+}
+```
+
+`candyType` representa a cor e `specialType` representa o comportamento especial.
+Essa separação permite trocar imagens e efeitos sem alterar as regras do jogo.
+
+## Doces especiais
+
+- Quatro doces em uma linha criam um doce `striped-column`.
+- Quatro doces em uma coluna criam um doce `striped-row`.
+- Cinco ou mais doces em linha reta criam uma `color-bomb` sem cor-base.
+- Nesta etapa, somente a combinação inicial causada pelo jogador cria especiais.
+- A ativação dos especiais será implementada em um ciclo TDD separado.
 
 ## Fluxo de uma jogada
 

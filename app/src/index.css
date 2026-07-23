@@ -27,23 +27,194 @@ button {
 }
 
 .app {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: clamp(18px, 4vw, 48px);
   overflow: hidden;
   background:
-    radial-gradient(circle at 18% 12%, rgb(194 49 255 / 20%), transparent 28%),
-    radial-gradient(circle at 86% 82%, rgb(255 46 134 / 18%), transparent 26%),
-    linear-gradient(145deg, #08040d 0%, #17091f 52%, #08040d 100%);
+    radial-gradient(circle at 50% 45%, rgb(6 2 12 / 8%) 0 28%, rgb(6 2 12 / 45%) 72%),
+    linear-gradient(180deg, rgb(8 3 16 / 8%) 0%, rgb(8 3 16 / 18%) 56%, rgb(8 3 16 / 48%) 100%),
+    url("./images/backgrounds/gothic-candy-castle.png") center / cover no-repeat,
+    #09050e;
+}
+
+.animated-background {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fog-layer {
+  position: absolute;
+  left: -25%;
+  width: 150%;
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+}
+
+.fog-layer-back {
+  top: 20%;
+  height: 48%;
+  opacity: 0.34;
+  background:
+    radial-gradient(ellipse at 18% 55%, rgb(167 109 207 / 42%) 0 8%, transparent 34%),
+    radial-gradient(ellipse at 48% 42%, rgb(96 75 154 / 46%) 0 11%, transparent 38%),
+    radial-gradient(ellipse at 79% 60%, rgb(189 106 199 / 35%) 0 9%, transparent 35%);
+  filter: blur(32px);
+  animation: fog-drift-back 34s ease-in-out infinite alternate;
+}
+
+.fog-layer-front {
+  bottom: -10%;
+  height: 42%;
+  opacity: 0.24;
+  background:
+    radial-gradient(ellipse at 12% 52%, rgb(201 129 222 / 48%) 0 10%, transparent 38%),
+    radial-gradient(ellipse at 45% 66%, rgb(91 80 155 / 55%) 0 13%, transparent 42%),
+    radial-gradient(ellipse at 76% 48%, rgb(221 119 206 / 38%) 0 9%, transparent 36%);
+  filter: blur(38px);
+  animation: fog-drift-front 46s ease-in-out infinite alternate-reverse;
+}
+
+.bat-swarm {
+  position: absolute;
+  inset: 0;
+}
+
+.bat-flight {
+  position: absolute;
+  top: var(--bat-top);
+  left: -90px;
+  display: block;
+  width: clamp(36px, 4.8vw, 74px);
+  color: #08030d;
+  opacity: 0;
+  filter:
+    drop-shadow(0 0 4px rgb(202 102 255 / 58%))
+    blur(var(--bat-blur));
+  will-change: transform, opacity;
+  animation: bat-crossing var(--bat-duration) linear var(--bat-delay) infinite;
+}
+
+.bat-icon {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  animation: bat-bob 1.9s ease-in-out var(--bob-delay) infinite alternate;
+}
+
+.bat-icon path {
+  fill: currentcolor;
+}
+
+.bat-wing {
+  transform-box: fill-box;
+  animation-duration: var(--flap-duration);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+.bat-wing-left {
+  transform-origin: right center;
+  animation-name: bat-flap-left;
+}
+
+.bat-wing-right {
+  transform-origin: left center;
+  animation-name: bat-flap-right;
+}
+
+@keyframes fog-drift-back {
+  from {
+    transform: translate3d(-6%, -2%, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(7%, 3%, 0) scale(1.08);
+  }
+}
+
+@keyframes fog-drift-front {
+  from {
+    transform: translate3d(8%, 2%, 0) scale(1.08);
+  }
+
+  to {
+    transform: translate3d(-7%, -3%, 0) scale(1);
+  }
+}
+
+@keyframes bat-crossing {
+  0% {
+    opacity: 0;
+    transform: translate3d(-5vw, 0, 0) scale(var(--bat-scale));
+  }
+
+  8% {
+    opacity: var(--bat-opacity);
+  }
+
+  50% {
+    transform: translate3d(62vw, var(--bat-mid-rise), 0) scale(var(--bat-scale));
+  }
+
+  92% {
+    opacity: var(--bat-opacity);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(130vw, var(--bat-rise), 0) scale(var(--bat-scale));
+  }
+}
+
+@keyframes bat-bob {
+  from {
+    translate: 0 -3px;
+    rotate: -3deg;
+  }
+
+  to {
+    translate: 0 4px;
+    rotate: 4deg;
+  }
+}
+
+@keyframes bat-flap-left {
+  from {
+    transform: rotate(8deg) scaleY(1);
+  }
+
+  to {
+    transform: rotate(-12deg) scaleY(0.42);
+  }
+}
+
+@keyframes bat-flap-right {
+  from {
+    transform: rotate(-8deg) scaleY(1);
+  }
+
+  to {
+    transform: rotate(12deg) scaleY(0.42);
+  }
 }
 
 .game-shell {
+  position: relative;
+  z-index: 1;
   width: min(100%, 680px);
   padding: clamp(18px, 3.5vw, 34px);
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 30px;
-  background: linear-gradient(160deg, rgb(43 20 55 / 94%), rgb(14 8 20 / 96%));
+  background: linear-gradient(160deg, rgb(43 20 55 / 90%), rgb(14 8 20 / 94%));
+  backdrop-filter: blur(9px) saturate(0.9);
   box-shadow:
     0 35px 90px rgb(0 0 0 / 55%),
     inset 0 1px 0 rgb(255 255 255 / 12%);
@@ -149,21 +320,68 @@ h1 {
   box-shadow: 0 0 0 3px rgb(199 80 255 / 35%), 0 0 24px rgb(209 69 255 / 48%);
 }
 
-.tile img {
+.candy-visual {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  filter: drop-shadow(0 7px 5px rgb(0 0 0 / 38%));
+  user-select: none;
+}
+
+.candy-visual img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  pointer-events: none;
-  filter: drop-shadow(0 7px 5px rgb(0 0 0 / 38%));
-  user-select: none;
+}
+
+.candy-visual[data-special-type^="striped"]::after {
+  content: "";
+  position: absolute;
+  inset: 2%;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  opacity: 0.92;
+  filter:
+    drop-shadow(0 0 4px rgb(255 255 255 / 90%))
+    drop-shadow(0 0 8px rgb(232 103 255 / 78%));
+  mask-image: radial-gradient(circle, #000 0 48%, transparent 78%);
+}
+
+.candy-visual[data-special-type="striped-column"]::after {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 23%,
+    rgb(255 255 255 / 92%) 25% 30%,
+    rgb(221 101 255 / 70%) 32% 35%,
+    transparent 37% 61%
+  );
+}
+
+.candy-visual[data-special-type="striped-row"]::after {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0 23%,
+    rgb(255 255 255 / 92%) 25% 30%,
+    rgb(221 101 255 / 70%) 32% 35%,
+    transparent 37% 61%
+  );
+}
+
+.candy-visual[data-special-type="color-bomb"] {
+  filter:
+    drop-shadow(0 7px 5px rgb(0 0 0 / 42%))
+    drop-shadow(0 0 9px rgb(215 75 255 / 70%))
+    drop-shadow(0 0 14px rgb(255 69 166 / 42%));
 }
 
 .tile.swap-front {
   z-index: 4;
 }
 
-.game[data-step="tiles-swapping"] .tile.swapping img {
+.game[data-step="tiles-swapping"] .tile.swapping .candy-visual {
   animation: tile-swap 280ms cubic-bezier(0.22, 0.8, 0.3, 1) both;
 }
 
@@ -184,7 +402,7 @@ h1 {
 }
 
 
-.game[data-step="tiles-swap-rejected"] .tile.swapping img {
+.game[data-step="tiles-swap-rejected"] .tile.swapping .candy-visual {
   animation: tile-swap-rejected 460ms
     cubic-bezier(0.22, 0.8, 0.3, 1) both;
 }
@@ -224,15 +442,15 @@ h1 {
 
 /* Combinação encontrada */
 
-.game[data-step="match-found"] .tile.match-3 img {
+.game[data-step="match-found"] .tile.match-3 .candy-visual {
   animation: match-three 450ms ease-in-out both;
 }
 
-.game[data-step="match-found"] .tile.match-4 img {
+.game[data-step="match-found"] .tile.match-4 .candy-visual {
   animation: match-four 450ms ease-in-out both;
 }
 
-.game[data-step="match-found"] .tile.match-5-plus img {
+.game[data-step="match-found"] .tile.match-5-plus .candy-visual {
   animation: match-five-plus 450ms ease-in-out both;
 }
 
@@ -255,13 +473,13 @@ h1 {
 
 /* Queda */
 
-.game[data-step="tiles-fell"] .tile.animating img {
+.game[data-step="tiles-fell"] .tile.animating .candy-visual {
   animation: tile-fall 350ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
 }
 
 /* Entrada de novos doces */
 
-.game[data-step="tiles-refilled"] .tile.animating img {
+.game[data-step="tiles-refilled"] .tile.animating .candy-visual {
   animation: tile-refill 350ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
 }
 
@@ -423,6 +641,7 @@ h1 {
 @media (max-width: 520px) {
   .app {
     padding: 10px;
+    background-position: center top;
   }
 
   .game-shell {
@@ -446,6 +665,14 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .bat-flight {
+    display: none;
+  }
+
+  .fog-layer {
+    animation: none;
+  }
+
   *,
   *::before,
   *::after {

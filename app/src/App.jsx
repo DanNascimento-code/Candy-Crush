@@ -1,17 +1,21 @@
 import { useRef, useState } from 'react'
 
-import blueCandy from './images/blue-candy.png'
-import greenCandy from './images/green-candy.png'
-import orangeCandy from './images/orange-candy.png'
-import purpleCandy from './images/purple-candy.png'
-import redCandy from './images/red-candy.png'
-import yellowCandy from './images/yellow-candy.png'
+import AnimatedBackground from './components/AnimatedBackground.jsx'
+import blueCandy from './images/dark-candies/blue-haunted-moon.png'
+import colorBombCandy from './images/dark-candies/color-bomb.png'
+import greenCandy from './images/dark-candies/green-poison-apple.png'
+import orangeCandy from './images/dark-candies/orange-dagger.png'
+import purpleCandy from './images/dark-candies/purple-skull.png'
+import redCandy from './images/dark-candies/red-broken-heart.png'
+import yellowCandy from './images/dark-candies/yellow-fanged-star.png'
 
-import { areAdjacent,
-         createBoard,
-         EMPTY_TILE,
-         trySwap,
- }       from './game/board.js'
+import {
+  EMPTY_TILE,
+  areAdjacent,
+  createBoard,
+  trySwap,
+} from './game/board.js'
+import { SPECIAL_TYPES } from './game/candy.js'
  
  
 
@@ -24,6 +28,21 @@ const CANDY_IMAGES = {
   purple: purpleCandy,
   red: redCandy,
   yellow: yellowCandy,
+}
+
+const CANDY_LABELS = {
+  blue: 'lua assombrada azul',
+  green: 'maçã envenenada verde',
+  orange: 'adaga de caramelo laranja',
+  purple: 'caveira doce roxa',
+  red: 'coração rachado vermelho',
+  yellow: 'estrela com presas amarela',
+}
+
+const SPECIAL_LABELS = {
+  [SPECIAL_TYPES.STRIPED_ROW]: 'listrado horizontal',
+  [SPECIAL_TYPES.STRIPED_COLUMN]: 'listrado vertical',
+  [SPECIAL_TYPES.COLOR_BOMB]: 'bomba de cor',
 }
 
 
@@ -103,10 +122,10 @@ function getAnimatedIndices(previousBoard, step) {
   }
 
   if (step.type === 'tiles-fell') {
-    return step.board.reduce((indices, candyType, index) => {
+    return step.board.reduce((indices, candy, index) => {
       const changedPosition =
-        candyType !== EMPTY_TILE &&
-        candyType !== previousBoard[index]
+        candy !== EMPTY_TILE &&
+        candy !== previousBoard[index]
 
       if (changedPosition) {
         indices.push(index)
@@ -117,10 +136,10 @@ function getAnimatedIndices(previousBoard, step) {
   }
 
   if (step.type === 'tiles-refilled') {
-    return step.board.reduce((indices, candyType, index) => {
+    return step.board.reduce((indices, candy, index) => {
       const receivedNewCandy =
         previousBoard[index] === EMPTY_TILE &&
-        candyType !== EMPTY_TILE
+        candy !== EMPTY_TILE
 
       if (receivedNewCandy) {
         indices.push(index)
@@ -155,6 +174,25 @@ function getMatchSizeForIndex(index, activeStep) {
   return largestMatchSize >= 5
     ? '5-plus'
     : String(largestMatchSize)
+}
+
+
+function getCandyAriaLabel(candy, index) {
+  if (candy === EMPTY_TILE) {
+    return `Posição vazia ${index + 1}`
+  }
+
+  if (candy.specialType === SPECIAL_TYPES.COLOR_BOMB) {
+    return `Bomba de cor, posição ${index + 1}`
+  }
+
+  const specialDescription = candy.specialType
+    ? ` ${SPECIAL_LABELS[candy.specialType]}`
+    : ''
+
+  const candyDescription = CANDY_LABELS[candy.candyType] ?? candy.candyType
+
+  return `Doce ${candyDescription}${specialDescription}, posição ${index + 1}`
 }
 
 
@@ -313,6 +351,8 @@ function App() {
 
   return (
     <main className="app">
+      <AnimatedBackground />
+
       <section className="game-shell" aria-label="Jogo de combinar doces">
         <header className="game-header">
           <div>
@@ -339,8 +379,10 @@ function App() {
           aria-busy={isResolving}
           aria-label="Tabuleiro 8 por 8"
         >
-          {board.map((candyType, index) => {
-            const isEmpty = candyType === EMPTY_TILE
+          {board.map((candy, index) => {
+            const isEmpty = candy === EMPTY_TILE
+            const candyType = candy?.candyType ?? null
+            const specialType = candy?.specialType ?? null
             const isAnimating = animatedIndices.includes(index)
             const matchSize = getMatchSizeForIndex(index, activeStep)
             const swapStyle = getSwapStyle(index, swapAnimation)
@@ -361,11 +403,7 @@ function App() {
                 type="button"
                 disabled={isResolving}
                 draggable={!isResolving && !isEmpty}
-                aria-label={
-                  isEmpty
-                    ? `Posição vazia ${index + 1}`
-                    : `Doce ${candyType}, posição ${index + 1}`
-                }
+                aria-label={getCandyAriaLabel(candy, index)}
                 aria-pressed={selectedIndex === index}
                 onClick={() => handleTileClick(index)}
                 onDragStart={() => setDraggedIndex(index)}
@@ -374,7 +412,21 @@ function App() {
                 onDragEnd={() => setDraggedIndex(null)}
               >
                 {!isEmpty && (
-                  <img src={CANDY_IMAGES[candyType]} alt="" draggable="false" />
+                  <span
+                    className="candy-visual"
+                    data-candy-type={candyType ?? undefined}
+                    data-special-type={specialType ?? undefined}
+                  >
+                    <img
+                      src={
+                        specialType === SPECIAL_TYPES.COLOR_BOMB
+                          ? colorBombCandy
+                          : CANDY_IMAGES[candyType]
+                      }
+                      alt=""
+                      draggable="false"
+                    />
+                  </span>
                 )}
               </button>
             )

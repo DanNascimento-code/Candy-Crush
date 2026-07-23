@@ -1,3 +1,9 @@
+import {
+  SPECIAL_TYPES,
+  createCandy,
+  getCandyType,
+} from './candy.js'
+
 export const EMPTY_TILE = null
 
 const DEFAULT_POINTS_PER_TILE = 10
@@ -40,12 +46,12 @@ function createsImmediateMatch(board, index, candyType, width) {
   const column = index % width
   const hasHorizontalMatch =
     column >= 2 &&
-    board[index - 1] === candyType &&
-    board[index - 2] === candyType
+    getCandyType(board[index - 1]) === candyType &&
+    getCandyType(board[index - 2]) === candyType
   const hasVerticalMatch =
     index >= width * 2 &&
-    board[index - width] === candyType &&
-    board[index - width * 2] === candyType
+    getCandyType(board[index - width]) === candyType &&
+    getCandyType(board[index - width * 2]) === candyType
 
   return hasHorizontalMatch || hasVerticalMatch
 }
@@ -76,7 +82,7 @@ export function createBoard({
       (type) => !createsImmediateMatch(board, index, type, width),
     )
 
-    board.push(randomItem(validTypes, random))
+    board.push(createCandy(randomItem(validTypes, random)))
   }
 
   return board
@@ -92,11 +98,11 @@ export function findMatchGroups(board, width) {
 
     while (column < width) {
       const startColumn = column
-      const type = board[row * width + column]
+      const type = getCandyType(board[row * width + column])
 
       while (
         column + 1 < width &&
-        board[row * width + column + 1] === type
+        getCandyType(board[row * width + column + 1]) === type
       ) {
         column += 1
       }
@@ -122,11 +128,11 @@ export function findMatchGroups(board, width) {
 
     while (row < height) {
       const startRow = row
-      const type = board[row * width + column]
+      const type = getCandyType(board[row * width + column])
 
       while (
         row + 1 < height &&
-        board[(row + 1) * width + column] === type
+        getCandyType(board[(row + 1) * width + column]) === type
       ) {
         row += 1
       }
@@ -231,7 +237,7 @@ function fillEmptyTiles(board, width, candyTypes, random) {
       const index = row * width + column
 
       if (filledBoard[index] === EMPTY_TILE) {
-        filledBoard[index] = randomItem(candyTypes, random)
+        filledBoard[index] = createCandy(randomItem(candyTypes, random))
       }
     }
   }
@@ -258,6 +264,60 @@ export function collapseBoard({
   )
 }
 
+export function planSpecialCreations(
+  matchGroups,
+  firstIndex,
+  secondIndex,
+) {
+  const creationsByIndex = new Map()
+  const specialPriority = {
+    [SPECIAL_TYPES.STRIPED_ROW]: 1,
+    [SPECIAL_TYPES.STRIPED_COLUMN]: 1,
+    [SPECIAL_TYPES.COLOR_BOMB]: 2,
+  }
+
+  for (const group of matchGroups) {
+    let specialType = null
+
+    if (group.indices.length >= 5) {
+      specialType = SPECIAL_TYPES.COLOR_BOMB
+    } else if (group.indices.length === 4) {
+      specialType =
+        group.orientation === 'row'
+          ? SPECIAL_TYPES.STRIPED_COLUMN
+          : SPECIAL_TYPES.STRIPED_ROW
+    }
+
+    if (specialType === null) {
+      continue
+    }
+
+    const creationIndex = group.indices.includes(firstIndex)
+      ? firstIndex
+      : secondIndex
+
+    const creation = {
+      index: creationIndex,
+      candyType:
+        specialType === SPECIAL_TYPES.COLOR_BOMB
+          ? null
+          : group.type,
+      specialType,
+    }
+    const currentCreation = creationsByIndex.get(creationIndex)
+
+    if (
+      currentCreation === undefined ||
+      specialPriority[creation.specialType] >
+        specialPriority[currentCreation.specialType]
+    ) {
+      creationsByIndex.set(creationIndex, creation)
+    }
+  }
+
+  return [...creationsByIndex.values()]
+}
+
 export function resolveBoard({
   board,
   width,
@@ -265,6 +325,7 @@ export function resolveBoard({
   random = Math.random,
   pointsPerTile = DEFAULT_POINTS_PER_TILE,
   maxCascades = DEFAULT_MAX_CASCADES,
+  initialSpecialCreations = [],
 }) {
   if (!Number.isInteger(maxCascades) || maxCascades < 1) {
     throw new RangeError('maxCascades must be a positive integer')
@@ -298,6 +359,19 @@ export function resolveBoard({
 
     cascades += 1
 
+    const specialCreations =
+      cascades === 1
+        ? initialSpecialCreations
+        : []
+
+    const specialCreationIndices = new Set(
+      specialCreations.map((creation) => creation.index),
+    )
+
+    const clearedIndices = matchedIndices.filter(
+      (index) => !specialCreationIndices.has(index),
+    )
+
     steps.push({
       type: 'match-found',
       cascade: cascades,
@@ -307,19 +381,36 @@ export function resolveBoard({
         orientation: group.orientation,
         indices: [...group.indices],
       })),
+      ...(cascades === 1 && initialSpecialCreations.length > 0
+        ? {
+            specialCreations: initialSpecialCreations.map(
+              (creation) => ({ ...creation }),
+            ),
+          }
+        : {}),
       board: [...nextBoard],
     })
 
-    clearedTiles += matchedIndices.length
+    clearedTiles += clearedIndices.length
     score += matchedIndices.length * pointsPerTile * cascades
 
-    const clearedBoard = clearMatches(nextBoard, matchedIndices)
+    const clearedBoard = clearMatches(
+      nextBoard,
+      clearedIndices,
+    )
+
+    for (const creation of specialCreations) {
+      clearedBoard[creation.index] = createCandy(
+        creation.candyType,
+        creation.specialType,
+      )
+    }
 
     steps.push({
       type: 'tiles-cleared',
       cascade: cascades,
+      clearedIndices,
       board: [...clearedBoard],
-      clearedIndices: [...matchedIndices],
     })
 
     const fallenBoard = moveTilesDown(clearedBoard, width)
@@ -336,7 +427,6 @@ export function resolveBoard({
       candyTypes,
       random,
     })
-  
 
     steps.push({
       type: 'tiles-refilled',
@@ -377,6 +467,12 @@ export function trySwap({
     return { accepted: false, reason: 'no-match', board: [...board] }
   }
 
+  const initialSpecialCreations = planSpecialCreations(
+    createdMatches,
+    firstIndex,
+    secondIndex,
+  )
+
   return {
     accepted: true,
     reason: 'match',
@@ -386,6 +482,7 @@ export function trySwap({
       width,
       candyTypes,
       random,
+      initialSpecialCreations,
     }),
   }
 }
